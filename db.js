@@ -11,7 +11,7 @@ const db = mysql.createConnection({
 db.connect((error) => {
   if (error) {
     console.error("Erreur de connexion MYSQL :", error);
-    process.exit(1);
+    process.exit(1); /* Sert de deco en cas d'erreur*/
   }
 
   console.log("Connecté à la BBD MySQL");

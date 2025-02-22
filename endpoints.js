@@ -1,13 +1,16 @@
 const express = require("express");
 const db = require("./db");
 const { query } = require("express");
+const { VerityToken } = require("./middleware");
 const bcrypt = require("bcrypt");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const { sign } = require("jsonwebtoken");
 
 /*
  *Route : Lister les produits
  * Get /api/produit
- */
+ Récupérer les produits */
 router.get("/produit", (req, res) => {
   db.query("select * from produit", (err, result) => {
     if (err) {
@@ -17,6 +20,7 @@ router.get("/produit", (req, res) => {
   });
 });
 
+/*Recuperer un produit parsont id*/
 router.get("/produit/:id", (req, res) => {
   const { id } = req.params;
   db.query("select * from produit WHERE id_produit =?", [id], (err, result) => {
@@ -32,10 +36,10 @@ router.get("/produit/:id", (req, res) => {
 });
 
 router.post("/client/register", (req, res) => {
-  const { nom, email, MDP, adresse } = req.body;
+  const { nom, email, MDP, adresse, prenom } = req.body;
 
   // Contrôler si le mail est déjà présent dans la base de donnée
-  db.query("select * from client WHERE email = ?", [email], (err, result) => {
+  db.query("select * from client WHERE Email = ?", [email], (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Erreur du serveur" });
     }
@@ -47,16 +51,14 @@ router.post("/client/register", (req, res) => {
   // Hachage du mot de passe
   bcrypt.hash(MDP, 10, (err, hash) => {
     // Le 10 represente le nombre de fois
-    if (err) {
+    if (err)
       return res
         .status(500)
         .json({ message: "Erreur lors du chargement du mot de passe" });
-    }
-
     // Insertion du nouveau client
     db.query(
-      "INSERT INTO client (Nom, email, MDP, adresse) Values (?,?,?,?)",
-      [nom, email, hash, adresse],
+      "INSERT INTO client (Nom, Email, MDP, Adresse, prenom) Values (?,?,?,?, ?)",
+      [nom, email, hash, adresse, prenom],
       (err, result) => {
         if (err) {
           console.log(err);
@@ -69,6 +71,53 @@ router.post("/client/register", (req, res) => {
           .json({ message: "Inscription réussie", id_client: result.insertId });
       },
     );
+  });
+});
+
+/* Route pour ce login */
+router.post("/client/login", (req, res) => {
+  const { email, motDePasse } = req.body;
+  db.query("SELECT * FROM client WHERE Email = ?", [email], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Erreur du serveur" });
+    }
+    if (result.length === 0) {
+      return res.status(401).json({ message: "Email incorrect" });
+    }
+    const client = result[0];
+
+    /*Vérification du MDP*/
+    bcrypt.compare(motDePasse, client.MDP, (err, isMatch) => {
+      if (err) return res.status(500).json({ message: "Erreur du serveur" });
+      if (!isMatch)
+        return res.status(401).json({ message: "Mot de passe incorrect" });
+
+      //Génération d'un Token JWT
+      const token = sign(
+        { id: client.id_client, email: client.Email },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN },
+      );
+      res.json({
+        message: "Conneexion réussie",
+        token,
+        client: {
+          id: client.id_client,
+          Nom: client.Nom,
+          prenom: client.prenom,
+          email: client.Email,
+        },
+      });
+    });
+  });
+});
+
+router.get("/categorie", (req, res) => {
+  db.query("SELECT * FROM categorie", (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Erreur du serveur" });
+    }
+    res.json(result);
   });
 });
 
