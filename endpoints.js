@@ -1,6 +1,6 @@
 const express = require("express");
 const db = require("./db");
-const { query } = require("express");
+const { query, response } = require("express");
 const { VerityToken } = require("./middleware");
 const bcrypt = require("bcrypt");
 const router = express.Router();
@@ -114,6 +114,15 @@ router.post("/client/login", (req, res) => {
 
 router.get("/categorie", (req, res) => {
   db.query("SELECT * FROM categorie", (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Erreur du serveur" });
+    }
+    res.json(result);
+  });
+});
+
+router.get("/Compte", (req, res) => {
+  db.query("SELECT *  FROM client ", (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Erreur du serveur" });
     }
