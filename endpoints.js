@@ -112,8 +112,60 @@ router.post("/client/login", (req, res) => {
   });
 });
 
-router.get("/categorie", (req, res) => {
+/*router.get("/categorie", (req, res) => {
   db.query("SELECT * FROM categorie", (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Erreur du serveur" });
+    }
+    res.json(result);
+  });
+}); */
+
+router.get("/categorie/cafe", (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "SELECT * FROM produit WHERE id_categorie = 2;",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Erreur du serveur" });
+      }
+      res.json(result);
+    },
+  );
+});
+
+router.get("/categorie/the", (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "SELECT * FROM produit WHERE id_categorie = 1;",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Erreur du serveur" });
+      }
+      res.json(result);
+    },
+  );
+});
+
+router.get("/categorie/accessoires", (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "SELECT * FROM produit WHERE id_categorie = 3;",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Erreur du serveur" });
+      }
+      res.json(result);
+    },
+  );
+});
+
+router.get("/Compte/:id", (req, res) => {
+  const { id } = req.params; //recupe les donners passer dans l'url
+  db.query("SELECT *  FROM client where id_client = ?", [id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Erreur du serveur" });
     }
@@ -121,13 +173,8 @@ router.get("/categorie", (req, res) => {
   });
 });
 
-router.get("/Compte", (req, res) => {
-  db.query("SELECT *  FROM client ", (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Erreur du serveur" });
-    }
-    res.json(result);
-  });
+router.get("/statue", (req, res) => {
+  res.json("ok");
 });
 
 module.exports = router;
